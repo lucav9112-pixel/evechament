@@ -1,0 +1,27 @@
+name: Build EVE_ReShade
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # deps/imgui é submódulo do ReShade, então precisa do --recurse-submodules
+      - name: Clonar ReShade (headers + imgui)
+        run: git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/crosire/reshade.git reshade
+
+      - name: Configurar
+        run: cmake -B build -A x64 -DRESHADE_DIR="${{ github.workspace }}/reshade"
+
+      - name: Compilar
+        run: cmake --build build --config Release
+
+      - name: Enviar o addon compilado
+        uses: actions/upload-artifact@v4
+        with:
+          name: EVE_ReShade
+          path: build/Release/EVE_ReShade.addon64
